@@ -1,0 +1,1951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Ratna AI - Complete Learning Platform</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-shadow {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .dark {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+        .dark .bg-white {
+            background-color: #2d2d2d;
+        }
+        .dark .text-gray-900 {
+            color: #ffffff;
+        }
+        .dark .text-gray-600 {
+            color: #a0a0a0;
+        }
+        .dark .border-gray-200 {
+            border-color: #4a4a4a;
+        }
+        .typing-animation {
+            animation: typing 2s infinite;
+        }
+        @keyframes typing {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useContext, createContext } = React;
+
+        // Context for global state management
+        const AppContext = createContext();
+
+        // Mock data and utilities
+        const mockUsers = {
+            student: { id: 1, name: 'Rahul Sharma', email: 'rahul@example.com', role: 'student', avatar: 'https://via.placeholder.com/40' },
+            teacher: { id: 2, name: 'Dr. Priya Patel', email: 'priya@example.com', role: 'teacher', avatar: 'https://via.placeholder.com/40' },
+            admin: { id: 3, name: 'Admin User', email: 'admin@example.com', role: 'admin', avatar: 'https://via.placeholder.com/40' }
+        };
+
+        const mockQuizzes = [
+            { id: 1, title: 'Mathematics - Algebra Basics', questions: 15, difficulty: 'Medium', category: 'Mathematics', created: '2024-01-15' },
+            { id: 2, title: 'Science - Physics Laws', questions: 20, difficulty: 'Hard', category: 'Science', created: '2024-01-14' },
+            { id: 3, title: 'History - Ancient India', questions: 10, difficulty: 'Easy', category: 'History', created: '2024-01-13' }
+        ];
+
+        const mockNotes = [
+            { id: 1, title: 'Quadratic Equations', subject: 'Mathematics', type: 'PDF', uploadedBy: 'Dr. Priya Patel', date: '2024-01-15' },
+            { id: 2, title: 'Newton\'s Laws', subject: 'Physics', type: 'DOC', uploadedBy: 'Dr. Priya Patel', date: '2024-01-14' },
+            { id: 3, title: 'Mughal Empire', subject: 'History', type: 'TEXT', uploadedBy: 'Dr. Priya Patel', date: '2024-01-13' }
+        ];
+
+        const translations = {
+            en: {
+                welcome: 'Welcome to Study Ratna AI',
+                signIn: 'Sign In',
+                signUp: 'Sign Up',
+                dashboard: 'Dashboard',
+                notes: 'Notes',
+                quizzes: 'Quizzes',
+                askAI: 'Ask AI',
+                bookmarks: 'Bookmarks',
+                profile: 'Profile',
+                settings: 'Settings',
+                logout: 'Logout',
+                students: 'Students',
+                teachers: 'Teachers',
+                analytics: 'Analytics',
+                upload: 'Upload',
+                create: 'Create',
+                moderate: 'Moderate',
+                announcements: 'Announcements'
+            },
+            hi: {
+                welcome: 'स्टडी रत्न AI में आपका स्वागत है',
+                signIn: 'साइन इन',
+                signUp: 'साइन अप',
+                dashboard: 'डैशबोर्ड',
+                notes: 'नोट्स',
+                quizzes: 'क्विज़',
+                askAI: 'AI से पूछें',
+                bookmarks: 'बुकमार्क',
+                profile: 'प्रोफ़ाइल',
+                settings: 'सेटिंग्स',
+                logout: 'लॉग आउट',
+                students: 'छात्र',
+                teachers: 'शिक्षक',
+                analytics: 'एनालिटिक्स',
+                upload: 'अपलोड',
+                create: 'बनाएं',
+                moderate: 'मॉडरेट',
+                announcements: 'घोषणाएं'
+            }
+        };
+
+        // App Provider Component
+        const AppProvider = ({ children }) => {
+            const [user, setUser] = useState(null);
+            const [currentPage, setCurrentPage] = useState('welcome');
+            const [theme, setTheme] = useState('light');
+            const [language, setLanguage] = useState('en');
+            const [notifications, setNotifications] = useState([]);
+            const [bookmarks, setBookmarks] = useState([]);
+
+            const t = (key) => translations[language][key] || key;
+
+            const addNotification = (message, type = 'info') => {
+                const id = Date.now();
+                setNotifications(prev => [...prev, { id, message, type }]);
+                setTimeout(() => {
+                    setNotifications(prev => prev.filter(n => n.id !== id));
+                }, 5000);
+            };
+
+            const toggleTheme = () => {
+                setTheme(prev => prev === 'light' ? 'dark' : 'light');
+            };
+
+            const toggleLanguage = () => {
+                setLanguage(prev => prev === 'en' ? 'hi' : 'en');
+            };
+
+            const value = {
+                user, setUser,
+                currentPage, setCurrentPage,
+                theme, setTheme, toggleTheme,
+                language, setLanguage, toggleLanguage,
+                notifications, addNotification,
+                bookmarks, setBookmarks,
+                t
+            };
+
+            return (
+                <AppContext.Provider value={value}>
+                    <div className={theme === 'dark' ? 'dark' : ''}>
+                        {children}
+                    </div>
+                </AppContext.Provider>
+            );
+        };
+
+        // Header Component
+        const Header = () => {
+            const { user, currentPage, setCurrentPage, theme, toggleTheme, language, toggleLanguage, t } = useContext(AppContext);
+
+            if (!user) return null;
+
+            return (
+                <header className="bg-white dark:bg-gray-800 shadow-md border-b border-gray-200 dark:border-gray-700">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="flex justify-between items-center h-16">
+                            <div className="flex items-center">
+                                <h1 className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                                    <i className="fas fa-gem mr-2"></i>
+                                    Study Ratna AI
+                                </h1>
+                            </div>
+                            <nav className="hidden md:flex space-x-8">
+                                <button 
+                                    onClick={() => setCurrentPage('dashboard')}
+                                    className={`px-3 py-2 rounded-md text-sm font-medium ${currentPage === 'dashboard' ? 'bg-purple-100 text-purple-700' : 'text-gray-600 hover:text-gray-900'} dark:text-gray-300 dark:hover:text-white`}
+                                >
+                                    <i className="fas fa-tachometer-alt mr-1"></i>
+                                    {t('dashboard')}
+                                </button>
+                                {user.role === 'student' && (
+                                    <>
+                                        <button 
+                                            onClick={() => setCurrentPage('notes')}
+                                            className={`px-3 py-2 rounded-md text-sm font-medium ${currentPage === 'notes' ? 'bg-purple-100 text-purple-700' : 'text-gray-600 hover:text-gray-900'} dark:text-gray-300 dark:hover:text-white`}
+                                        >
+                                            <i className="fas fa-book mr-1"></i>
+                                            {t('notes')}
+                                        </button>
+                                        <button 
+                                            onClick={() => setCurrentPage('quizzes')}
+                                            className={`px-3 py-2 rounded-md text-sm font-medium ${currentPage === 'quizzes' ? 'bg-purple-100 text-purple-700' : 'text-gray-600 hover:text-gray-900'} dark:text-gray-300 dark:hover:text-white`}
+                                        >
+                                            <i className="fas fa-question-circle mr-1"></i>
+                                            {t('quizzes')}
+                                        </button>
+                                        <button 
+                                            onClick={() => setCurrentPage('ask-ai')}
+                                            className={`px-3 py-2 rounded-md text-sm font-medium ${currentPage === 'ask-ai' ? 'bg-purple-100 text-purple-700' : 'text-gray-600 hover:text-gray-900'} dark:text-gray-300 dark:hover:text-white`}
+                                        >
+                                            <i className="fas fa-robot mr-1"></i>
+                                            {t('askAI')}
+                                        </button>
+                                    </>
+                                )}
+                            </nav>
+                            <div className="flex items-center space-x-4">
+                                <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+                                    <i className={`fas ${theme === 'light' ? 'fa-moon' : 'fa-sun'} text-gray-600 dark:text-gray-300`}></i>
+                                </button>
+                                <button onClick={toggleLanguage} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+                                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                                        {language === 'en' ? 'हिं' : 'EN'}
+                                    </span>
+                                </button>
+                                <div className="flex items-center space-x-2">
+                                    <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full" />
+                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{user.name}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+            );
+        };
+
+        // Sidebar Component
+        const Sidebar = () => {
+            const { user, currentPage, setCurrentPage, t } = useContext(AppContext);
+
+            if (!user) return null;
+
+            const getMenuItems = () => {
+                const common = [
+                    { id: 'dashboard', icon: 'fas fa-tachometer-alt', label: t('dashboard') },
+                    { id: 'profile', icon: 'fas fa-user', label: t('profile') },
+                    { id: 'settings', icon: 'fas fa-cog', label: t('settings') }
+                ];
+
+                if (user.role === 'student') {
+                    return [
+                        { id: 'dashboard', icon: 'fas fa-tachometer-alt', label: t('dashboard') },
+                        { id: 'notes', icon: 'fas fa-book', label: t('notes') },
+                        { id: 'quizzes', icon: 'fas fa-question-circle', label: t('quizzes') },
+                        { id: 'ask-ai', icon: 'fas fa-robot', label: t('askAI') },
+                        { id: 'bookmarks', icon: 'fas fa-bookmark', label: t('bookmarks') },
+                        ...common
+                    ];
+                } else if (user.role === 'teacher') {
+                    return [
+                        { id: 'dashboard', icon: 'fas fa-tachometer-alt', label: t('dashboard') },
+                        { id: 'upload', icon: 'fas fa-upload', label: t('upload') },
+                        { id: 'create-quiz', icon: 'fas fa-plus-circle', label: t('create') + ' Quiz' },
+                        { id: 'students', icon: 'fas fa-users', label: t('students') },
+                        { id: 'moderate', icon: 'fas fa-shield-alt', label: t('moderate') },
+                        ...common
+                    ];
+                } else if (user.role === 'admin') {
+                    return [
+                        { id: 'dashboard', icon: 'fas fa-tachometer-alt', label: t('dashboard') },
+                        { id: 'users', icon: 'fas fa-users-cog', label: 'Manage Users' },
+                        { id: 'analytics', icon: 'fas fa-chart-line', label: t('analytics') },
+                        { id: 'announcements', icon: 'fas fa-bullhorn', label: t('announcements') },
+                        { id: 'approvals', icon: 'fas fa-check-circle', label: 'Approvals' },
+                        ...common
+                    ];
+                }
+                return common;
+            };
+
+            return (
+                <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 md:top-16">
+                    <div className="flex-1 flex flex-col min-h-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
+                        <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+                            <nav className="mt-5 flex-1 px-2 space-y-1">
+                                {getMenuItems().map((item) => (
+                                    <button
+                                        key={item.id}
+                                        onClick={() => setCurrentPage(item.id)}
+                                        className={`w-full group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+                                            currentPage === item.id
+                                                ? 'bg-purple-100 text-purple-900 dark:bg-purple-900 dark:text-purple-100'
+                                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white'
+                                        }`}
+                                    >
+                                        <i className={`${item.icon} mr-3 text-sm`}></i>
+                                        {item.label}
+                                    </button>
+                                ))}
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Notification Component
+        const NotificationToast = () => {
+            const { notifications } = useContext(AppContext);
+
+            return (
+                <div className="fixed top-20 right-4 z-50 space-y-2">
+                    {notifications.map(notification => (
+                        <div
+                            key={notification.id}
+                            className={`p-4 rounded-md shadow-lg ${
+                                notification.type === 'error' ? 'bg-red-100 text-red-700' :
+                                notification.type === 'success' ? 'bg-green-100 text-green-700' :
+                                'bg-blue-100 text-blue-700'
+                            }`}
+                        >
+                            <div className="flex items-center">
+                                <i className={`fas ${
+                                    notification.type === 'error' ? 'fa-exclamation-triangle' :
+                                    notification.type === 'success' ? 'fa-check-circle' :
+                                    'fa-info-circle'
+                                } mr-2`}></i>
+                                {notification.message}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            );
+        };
+
+        // Welcome Page Component
+        const WelcomePage = () => {
+            const { setCurrentPage, t } = useContext(AppContext);
+
+            return (
+                <div className="min-h-screen gradient-bg">
+                    <div className="container mx-auto px-4 py-16">
+                        <div className="text-center text-white mb-12">
+                            <h1 className="text-6xl font-bold mb-4">
+                                <i className="fas fa-gem mr-4"></i>
+                                Study Ratna AI
+                            </h1>
+                            <p className="text-xl opacity-90">{t('welcome')}</p>
+                            <p className="text-lg opacity-80 mt-2">AI-Powered Learning Platform for Students, Teachers & Admins</p>
+                        </div>
+                        
+                        <div className="max-w-4xl mx-auto grid md:grid-cols-3 gap-8 mb-12">
+                            <div className="bg-white rounded-lg p-6 card-shadow">
+                                <i className="fas fa-user-graduate text-4xl text-purple-600 mb-4"></i>
+                                <h3 className="text-xl font-semibold mb-2">Students</h3>
+                                <p className="text-gray-600">Access study materials, take quizzes, and get AI-powered explanations</p>
+                            </div>
+                            <div className="bg-white rounded-lg p-6 card-shadow">
+                                <i className="fas fa-chalkboard-teacher text-4xl text-purple-600 mb-4"></i>
+                                <h3 className="text-xl font-semibold mb-2">Teachers</h3>
+                                <p className="text-gray-600">Upload content, create quizzes, and track student progress</p>
+                            </div>
+                            <div className="bg-white rounded-lg p-6 card-shadow">
+                                <i className="fas fa-user-shield text-4xl text-purple-600 mb-4"></i>
+                                <h3 className="text-xl font-semibold mb-2">Admins</h3>
+                                <p className="text-gray-600">Manage users, analytics, and platform settings</p>
+                            </div>
+                        </div>
+
+                        <div className="text-center">
+                            <button
+                                onClick={() => setCurrentPage('login')}
+                                className="bg-white text-purple-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition duration-300 mr-4"
+                            >
+                                <i className="fas fa-sign-in-alt mr-2"></i>
+                                {t('signIn')}
+                            </button>
+                            <button
+                                onClick={() => setCurrentPage('login')}
+                                className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-purple-600 transition duration-300"
+                            >
+                                <i className="fas fa-user-plus mr-2"></i>
+                                {t('signUp')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Login Page Component
+        const LoginPage = () => {
+            const { setUser, setCurrentPage, t } = useContext(AppContext);
+            const [selectedRole, setSelectedRole] = useState('student');
+
+            const handleLogin = (role) => {
+                setUser(mockUsers[role]);
+                setCurrentPage('dashboard');
+            };
+
+            return (
+                <div className="min-h-screen gradient-bg flex items-center justify-center">
+                    <div className="max-w-md w-full bg-white rounded-lg shadow-xl p-8">
+                        <div className="text-center mb-8">
+                            <h2 className="text-3xl font-bold text-gray-900">
+                                <i className="fas fa-gem text-purple-600 mr-2"></i>
+                                Study Ratna AI
+                            </h2>
+                            <p className="text-gray-600 mt-2">{t('signIn')} to your account</p>
+                        </div>
+
+                        <div className="mb-6">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Select Role</label>
+                            <select
+                                value={selectedRole}
+                                onChange={(e) => setSelectedRole(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            >
+                                <option value="student">Student</option>
+                                <option value="teacher">Teacher</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+
+                        <button
+                            onClick={() => handleLogin(selectedRole)}
+                            className="w-full bg-red-500 text-white py-3 rounded-md hover:bg-red-600 transition duration-300 flex items-center justify-center mb-4"
+                        >
+                            <i className="fab fa-google mr-2"></i>
+                            Sign in with Google
+                        </button>
+
+                        <div className="text-center">
+                            <button
+                                onClick={() => setCurrentPage('welcome')}
+                                className="text-purple-600 hover:text-purple-800 text-sm"
+                            >
+                                ← Back to Welcome
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Dashboard Components
+        const StudentDashboard = () => {
+            const { t } = useContext(AppContext);
+            const [recentActivity, setRecentActivity] = useState([
+                { id: 1, type: 'quiz', title: 'Mathematics Quiz', score: 85, date: '2024-01-15' },
+                { id: 2, type: 'ai', title: 'Asked AI about Physics', date: '2024-01-14' },
+                { id: 3, type: 'note', title: 'Downloaded History Notes', date: '2024-01-13' }
+            ]);
+
+            return (
+                <div className="space-y-6">
+                    <div className="grid md:grid-cols-4 gap-6">
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow card-shadow">
+                            <div className="flex items-center">
+                                <i className="fas fa-book text-3xl text-blue-500 mr-4"></i>
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Notes</h3>
+                                    <p className="text-2xl font-bold text-blue-500">{mockNotes.length}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow card-shadow">
+                            <div className="flex items-center">
+                                <i className="fas fa-question-circle text-3xl text-green-500 mr-4"></i>
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Quizzes</h3>
+                                    <p className="text-2xl font-bold text-green-500">{mockQuizzes.length}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow card-shadow">
+                            <div className="flex items-center">
+                                <i className="fas fa-trophy text-3xl text-yellow-500 mr-4"></i>
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Avg Score</h3>
+                                    <p className="text-2xl font-bold text-yellow-500">85%</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow card-shadow">
+                            <div className="flex items-center">
+                                <i className="fas fa-robot text-3xl text-purple-500 mr-4"></i>
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">AI Queries</h3>
+                                    <p className="text-2xl font-bold text-purple-500">24</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-6">
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow card-shadow">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Recent Activity</h3>
+                            <div className="space-y-3">
+                                {recentActivity.map(activity => (
+                                    <div key={activity.id} className="flex items-center space-x-3">
+                                        <i className={`fas ${
+                                            activity.type === 'quiz' ? 'fa-question-circle text-green-500' :
+                                            activity.type === 'ai' ? 'fa-robot text-purple-500' :
+                                            'fa-book text-blue-500'
+                                        }`}></i>
+                                        <div className="flex-1">
+                                            <p className="text-sm text-gray-900 dark:text-white">{activity.title}</p>
+                                            <p className="text-xs text-gray-500">{activity.date}</p>
+                                        </div>
+                                        {activity.score && (
+                                            <span className="text-sm font-medium text-green-600">{activity.score}%</span>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow card-shadow">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h3>
+                            <div className="grid grid-cols-2 gap-4">
+                                <button className="p-4 bg-blue-50 dark:bg-blue-900 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-800 transition duration-300">
+                                    <i className="fas fa-book text-blue-500 text-xl mb-2"></i>
+                                    <p className="text-sm text-blue-700 dark:text-blue-300">Browse Notes</p>
+                                </button>
+                                <button className="p-4 bg-green-50 dark:bg-green-900 rounded-lg hover:bg-green-100 dark:hover:bg-green-800 transition duration-300">
+                                    <i className="fas fa-play text-green-500 text-xl mb-2"></i>
+                                    <p className="text-sm text-green-700 dark:text-green-300">Take Quiz</p>
+                                </button>
+                                <button className="p-4 bg-purple-50 dark:bg-purple-900 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-800 transition duration-300">
+                                    <i className="fas fa-robot text-purple-500 text-xl mb-2"></i>
+                                    <p className="text-sm text-purple-700 dark:text-purple-300">Ask AI</p>
+                                </button>
+                                <button className="p-4 bg-yellow-50 dark:bg-yellow-900 rounded-lg hover:bg-yellow-100 dark:hover:bg-yellow-800 transition duration-300">
+                                    <i className="fas fa-bookmark text-yellow-500 text-xl mb-2"></i>
+                                    <p className="text-sm text-yellow-700 dark:text-yellow-300">Bookmarks</p>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const TeacherDashboard = () => {
+            const { t } = useContext(AppContext);
+            
+            return (
+                <div className="space-y-6">
+                    <div className="grid md:grid-cols-4 gap-6">
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow card-shadow">
+                            <div className="flex items-center">
+                                <i className="fas fa-upload text-3xl text-blue-500 mr-4"></i>
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Uploads</h3>
+                                    <p className="text-2xl font-bold text-blue-500">12</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow card-shadow">
+                            <div className="flex items-center">
+                                <i className="fas fa-users text-3xl text-green-500 mr-4"></i>
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Students</h3>
+                                    <p className="text-2xl font-bold text-green-500">156</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow card-shadow">
+                            <div className="flex items-center">
+                                <i className="fas fa-question-circle text-3xl text-purple-500 mr-4"></i>
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Quizzes</h3>
+                                    <p className="text-2xl font-bold text-purple-500">8</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow card-shadow">
+                            <div className="flex items-center">
+                                <i className="fas fa-eye text-3xl text-yellow-500 mr-4"></i>
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Views</h3>
+                                    <p className="text-2xl font-bold text-yellow-500">2.4K</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-6">
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow card-shadow">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Recent Student Activity</h3>
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-600 dark:text-gray-400">Quiz completions today</span>
+                                    <span className="text-sm font-medium text-green-600">+23</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-600 dark:text-gray-400">Notes downloaded</span>
+                                    <span className="text-sm font-medium text-blue-600">+45</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-600 dark:text-gray-400">AI queries made</span>
+                                    <span className="text-sm font-medium text-purple-600">+67</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow card-shadow">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h3>
+                            <div className="grid grid-cols-2 gap-4">
+                                <button className="p-4 bg-blue-50 dark:bg-blue-900 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-800 transition duration-300">
+                                    <i className="fas fa-upload text-blue-500 text-xl mb-2"></i>
+                                    <p className="text-sm text-blue-700 dark:text-blue-300">Upload Notes</p>
+                                </button>
+                                <button className="p-4 bg-green-50 dark:bg-green-900 rounded-lg hover:bg-green-100 dark:hover:bg-green-800 transition duration-300">
+                                    <i className="fas fa-plus text-green-500 text-xl mb-2"></i>
+                                    <p className="text-sm text-green-700 dark:text-green-300">Create Quiz</p>
+                                </button>
+                                <button className="p-4 bg-purple-50 dark:bg-purple-900 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-800 transition duration-300">
+                                    <i className="fas fa-chart-line text-purple-500 text-xl mb-2"></i>
+                                    <p className="text-sm text-purple-700 dark:text-purple-300">View Reports</p>
+                                </button>
+                                <button className="p-4 bg-yellow-50 dark:bg-yellow-900 rounded-lg hover:bg-yellow-100 dark:hover:bg-yellow-800 transition duration-300">
+                                    <i className="fas fa-shield-alt text-yellow-500 text-xl mb-2"></i>
+                                    <p className="text-sm text-yellow-700 dark:text-yellow-300">Moderate AI</p>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const AdminDashboard = () => {
+            const { t } = useContext(AppContext);
+            
+            useEffect(() => {
+                const ctx = document.getElementById('userStatsChart');
+                if (ctx) {
+                    new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Students', 'Teachers', 'Admins'],
+                            datasets: [{
+                                data: [1250, 89, 12],
+                                backgroundColor: ['#3B82F6', '#10B981', '#F59E0B']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom'
+                                }
+                            }
+                        }
+                    });
+                }
+            }, []);
+
+            return (
+                <div className="space-y-6">
+                    <div className="grid md:grid-cols-4 gap-6">
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow card-shadow">
+                            <div className="flex items-center">
+                                <i className="fas fa-users text-3xl text-blue-500 mr-4"></i>
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Total Users</h3>
+                                    <p className="text-2xl font-bold text-blue-500">1,351</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow card-shadow">
+                            <div className="flex items-center">
+                                <i className="fas fa-book text-3xl text-green-500 mr-4"></i>
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Content</h3>
+                                    <p className="text-2xl font-bold text-green-500">234</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow card-shadow">
+                            <div className="flex items-center">
+                                <i className="fas fa-robot text-3xl text-purple-500 mr-4"></i>
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">AI Queries</h3>
+                                    <p className="text-2xl font-bold text-purple-500">12.5K</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow card-shadow">
+                            <div className="flex items-center">
+                                <i className="fas fa-chart-line text-3xl text-yellow-500 mr-4"></i>
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Growth</h3>
+                                    <p className="text-2xl font-bold text-yellow-500">+23%</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-6">
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow card-shadow">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">User Distribution</h3>
+                            <div style={{ height: '300px' }}>
+                                <canvas id="userStatsChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow card-shadow">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Recent Admin Actions</h3>
+                            <div className="space-y-3">
+                                <div className="flex items-center space-x-3">
+                                    <i className="fas fa-user-check text-green-500"></i>
+                                    <div>
+                                        <p className="text-sm text-gray-900 dark:text-white">Approved 3 teacher uploads</p>
+                                        <p className="text-xs text-gray-500">2 hours ago</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center space-x-3">
+                                    <i className="fas fa-bullhorn text-blue-500"></i>
+                                    <div>
+                                        <p className="text-sm text-gray-900 dark:text-white">Posted new announcement</p>
+                                        <p className="text-xs text-gray-500">5 hours ago</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center space-x-3">
+                                    <i className="fas fa-ban text-red-500"></i>
+                                    <div>
+                                        <p className="text-sm text-gray-900 dark:text-white">Banned 1 user for violation</p>
+                                        <p className="text-xs text-gray-500">1 day ago</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Notes Page Component
+        const NotesPage = () => {
+            const { t, addNotification } = useContext(AppContext);
+            const [searchTerm, setSearchTerm] = useState('');
+            const [selectedSubject, setSelectedSubject] = useState('all');
+
+            const filteredNotes = mockNotes.filter(note => 
+                (selectedSubject === 'all' || note.subject === selectedSubject) &&
+                note.title.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+
+            const handleDownload = (note) => {
+                addNotification(`Downloaded ${note.title}`, 'success');
+            };
+
+            return (
+                <div className="space-y-6">
+                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Study Notes</h2>
+                        <div className="flex space-x-4">
+                            <input
+                                type="text"
+                                placeholder="Search notes..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                            />
+                            <select
+                                value={selectedSubject}
+                                onChange={(e) => setSelectedSubject(e.target.value)}
+                                className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                            >
+                                <option value="all">All Subjects</option>
+                                <option value="Mathematics">Mathematics</option>
+                                <option value="Physics">Physics</option>
+                                <option value="History">History</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {filteredNotes.map(note => (
+                            <div key={note.id} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow card-shadow">
+                                <div className="flex items-center justify-between mb-4">
+                                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                        note.type === 'PDF' ? 'bg-red-100 text-red-700' :
+                                        note.type === 'DOC' ? 'bg-blue-100 text-blue-700' :
+                                        'bg-green-100 text-green-700'
+                                    }`}>
+                                        {note.type}
+                                    </span>
+                                    <span className="text-sm text-gray-500">{note.subject}</span>
+                                </div>
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{note.title}</h3>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                                    Uploaded by {note.uploadedBy} on {note.date}
+                                </p>
+                                <div className="flex space-x-2">
+                                    <button
+                                        onClick={() => handleDownload(note)}
+                                        className="flex-1 bg-purple-600 text-white py-2 rounded-md hover:bg-purple-700 transition duration-300"
+                                    >
+                                        <i className="fas fa-download mr-2"></i>
+                                        Download
+                                    </button>
+                                    <button className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 transition duration-300">
+                                        <i className="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        // Quiz Page Component
+        const QuizPage = () => {
+            const { t, addNotification } = useContext(AppContext);
+            const [selectedQuiz, setSelectedQuiz] = useState(null);
+
+            const handleStartQuiz = (quiz) => {
+                setSelectedQuiz(quiz);
+                addNotification(`Started quiz: ${quiz.title}`, 'success');
+            };
+
+            if (selectedQuiz) {
+                return <QuizInterface quiz={selectedQuiz} onBack={() => setSelectedQuiz(null)} />;
+            }
+
+            return (
+                <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Available Quizzes</h2>
+                        <div className="flex space-x-2">
+                            <button className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition duration-300">
+                                <i className="fas fa-trophy mr-2"></i>
+                                Leaderboard
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {mockQuizzes.map(quiz => (
+                            <div key={quiz.id} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow card-shadow">
+                                <div className="flex items-center justify-between mb-4">
+                                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                        quiz.difficulty === 'Easy' ? 'bg-green-100 text-green-700' :
+                                        quiz.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
+                                        'bg-red-100 text-red-700'
+                                    }`}>
+                                        {quiz.difficulty}
+                                    </span>
+                                    <span className="text-sm text-gray-500">{quiz.category}</span>
+                                </div>
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{quiz.title}</h3>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                                    {quiz.questions} questions • Created on {quiz.created}
+                                </p>
+                                <button
+                                    onClick={() => handleStartQuiz(quiz)}
+                                    className="w-full bg-purple-600 text-white py-2 rounded-md hover:bg-purple-700 transition duration-300"
+                                >
+                                    <i className="fas fa-play mr-2"></i>
+                                    Start Quiz
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        // Quiz Interface Component
+        const QuizInterface = ({ quiz, onBack }) => {
+            const [currentQuestion, setCurrentQuestion] = useState(0);
+            const [selectedAnswer, setSelectedAnswer] = useState(null);
+            const [score, setScore] = useState(0);
+            const [showResult, setShowResult] = useState(false);
+            const { addNotification } = useContext(AppContext);
+
+            const mockQuestions = [
+                {
+                    question: "What is the quadratic formula?",
+                    options: ["x = (-b ± √(b²-4ac)) / 2a", "x = -b / 2a", "x = b² - 4ac", "x = a² + b² = c²"],
+                    correct: 0
+                },
+                {
+                    question: "Solve: 2x + 5 = 15",
+                    options: ["x = 5", "x = 10", "x = 7.5", "x = 2.5"],
+                    correct: 0
+                },
+                {
+                    question: "What is the value of √64?",
+                    options: ["6", "8", "10", "12"],
+                    correct: 1
+                }
+            ];
+
+            const handleAnswer = (answerIndex) => {
+                setSelectedAnswer(answerIndex);
+            };
+
+            const handleNext = () => {
+                if (selectedAnswer === mockQuestions[currentQuestion].correct) {
+                    setScore(score + 1);
+                }
+
+                if (currentQuestion < mockQuestions.length - 1) {
+                    setCurrentQuestion(currentQuestion + 1);
+                    setSelectedAnswer(null);
+                } else {
+                    setShowResult(true);
+                    const finalScore = selectedAnswer === mockQuestions[currentQuestion].correct ? score + 1 : score;
+                    addNotification(`Quiz completed! Score: ${finalScore}/${mockQuestions.length}`, 'success');
+                }
+            };
+
+            if (showResult) {
+                return (
+                    <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 p-8 rounded-lg shadow card-shadow">
+                        <div className="text-center">
+                            <i className="fas fa-trophy text-6xl text-yellow-500 mb-4"></i>
+                            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Quiz Completed!</h2>
+                            <p className="text-xl text-gray-600 dark:text-gray-400 mb-6">
+                                Your Score: {score}/{mockQuestions.length} ({Math.round((score/mockQuestions.length)*100)}%)
+                            </p>
+                            <div className="flex space-x-4 justify-center">
+                                <button
+                                    onClick={onBack}
+                                    className="px-6 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition duration-300"
+                                >
+                                    Back to Quizzes
+                                </button>
+                                <button className="px-6 py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 transition duration-300">
+                                    Review Answers
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 p-8 rounded-lg shadow card-shadow">
+                    <div className="flex items-center justify-between mb-6">
+                        <button
+                            onClick={onBack}
+                            className="text-purple-600 hover:text-purple-800 dark:text-purple-400"
+                        >
+                            <i className="fas fa-arrow-left mr-2"></i>
+                            Back
+                        </button>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                            Question {currentQuestion + 1} of {mockQuestions.length}
+                        </span>
+                    </div>
+
+                    <div className="mb-6">
+                        <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+                            <div
+                                className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+                                style={{ width: `${((currentQuestion + 1) / mockQuestions.length) * 100}%` }}
+                            ></div>
+                        </div>
+                    </div>
+
+                    <div className="mb-8">
+                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
+                            {mockQuestions[currentQuestion].question}
+                        </h3>
+                        <div className="space-y-3">
+                            {mockQuestions[currentQuestion].options.map((option, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => handleAnswer(index)}
+                                    className={`w-full p-4 text-left rounded-lg border-2 transition duration-300 ${
+                                        selectedAnswer === index
+                                            ? 'border-purple-500 bg-purple-50 dark:bg-purple-900'
+                                            : 'border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500'
+                                    }`}
+                                >
+                                    <span className="text-gray-900 dark:text-white">{option}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end">
+                        <button
+                            onClick={handleNext}
+                            disabled={selectedAnswer === null}
+                            className="px-6 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-300"
+                        >
+                            {currentQuestion === mockQuestions.length - 1 ? 'Finish' : 'Next'}
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        // Ask AI Page Component
+        const AskAIPage = () => {
+            const { t, addNotification, bookmarks, setBookmarks } = useContext(AppContext);
+            const [messages, setMessages] = useState([
+                { id: 1, type: 'ai', text: 'Hello! I\'m your AI study assistant. How can I help you today?' }
+            ]);
+            const [inputText, setInputText] = useState('');
+            const [isTyping, setIsTyping] = useState(false);
+
+            const quickActions = [
+                { id: 'summarize', icon: 'fas fa-compress-alt', label: 'Summarize', prompt: 'Please summarize this topic for me' },
+                { id: 'explain', icon: 'fas fa-lightbulb', label: 'Explain', prompt: 'Please explain this concept in detail' },
+                { id: 'flashcards', icon: 'fas fa-clone', label: 'Flashcards', prompt: 'Generate flashcards for this topic' },
+                { id: 'translate', icon: 'fas fa-language', label: 'Translate', prompt: 'Translate this to Hindi' },
+                { id: 'quiz', icon: 'fas fa-question-circle', label: 'Quiz Me', prompt: 'Create a quiz on this topic' },
+                { id: 'examples', icon: 'fas fa-list-ul', label: 'Examples', prompt: 'Give me examples of this concept' }
+            ];
+
+            const handleSend = (text = inputText) => {
+                if (!text.trim()) return;
+
+                const userMessage = { id: Date.now(), type: 'user', text };
+                setMessages(prev => [...prev, userMessage]);
+                setInputText('');
+                setIsTyping(true);
+
+                // Simulate AI response
+                setTimeout(() => {
+                    const aiResponse = generateAIResponse(text);
+                    setMessages(prev => [...prev, { id: Date.now() + 1, type: 'ai', text: aiResponse }]);
+                    setIsTyping(false);
+                }, 1500);
+            };
+
+            const generateAIResponse = (question) => {
+                const responses = {
+                    'summarize': 'Here\'s a concise summary of the key points:\n\n• Main concept overview\n• Key principles and rules\n• Important formulas or facts\n• Practical applications\n• Common misconceptions to avoid',
+                    'explain': 'Let me break this down step by step:\n\n1. **Definition**: The fundamental concept\n2. **How it works**: The underlying mechanism\n3. **Key components**: Important parts to understand\n4. **Examples**: Real-world applications\n5. **Tips**: How to remember and apply this',
+                    'flashcards': '📚 **Flashcard Set Generated**\n\n**Card 1**: Question → Answer\n**Card 2**: Key Term → Definition\n**Card 3**: Formula → Application\n**Card 4**: Concept → Example\n**Card 5**: Problem → Solution Method',
+                    'translate': '🌐 **Translation**\n\n**English**: Your original text\n**Hindi**: आपका मूल पाठ का अनुवाद\n\nWould you like me to translate any specific educational content?',
+                    'quiz': '🎯 **Quiz Questions**\n\n**Q1**: Multiple choice question?\na) Option A\nb) Option B\nc) Option C\nd) Option D\n\n**Q2**: True or False question?\n\n**Q3**: Short answer question?',
+                    'examples': '💡 **Examples**\n\n**Example 1**: Basic scenario\n**Example 2**: Intermediate application\n**Example 3**: Advanced use case\n**Example 4**: Common mistake to avoid\n**Example 5**: Real-world application'
+                };
+
+                const lowerText = question.toLowerCase();
+                for (const [key, response] of Object.entries(responses)) {
+                    if (lowerText.includes(key)) {
+                        return response;
+                    }
+                }
+
+                return 'I understand your question! As an AI study assistant, I can help you with:\n\n• Summarizing complex topics\n• Explaining difficult concepts\n• Creating practice questions\n• Generating flashcards\n• Translating content\n• Providing examples\n\nWhat specific topic would you like me to help you with?';
+            };
+
+            const handleBookmark = (message) => {
+                const bookmark = {
+                    id: Date.now(),
+                    type: 'ai-response',
+                    text: message.text,
+                    date: new Date().toISOString().split('T')[0]
+                };
+                setBookmarks(prev => [...prev, bookmark]);
+                addNotification('Response bookmarked!', 'success');
+            };
+
+            return (
+                <div className="max-w-4xl mx-auto space-y-6">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow card-shadow">
+                        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                                <i className="fas fa-robot text-purple-600 mr-2"></i>
+                                AI Study Assistant
+                            </h2>
+                            <p className="text-gray-600 dark:text-gray-400 mt-1">Ask me anything about your studies!</p>
+                        </div>
+
+                        <div className="p-6">
+                            <div className="grid grid-cols-3 md:grid-cols-6 gap-3 mb-6">
+                                {quickActions.map(action => (
+                                    <button
+                                        key={action.id}
+                                        onClick={() => handleSend(action.prompt)}
+                                        className="flex flex-col items-center p-3 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition duration-300"
+                                    >
+                                        <i className={`${action.icon} text-purple-600 mb-1`}></i>
+                                        <span className="text-xs text-gray-700 dark:text-gray-300">{action.label}</span>
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div className="h-96 overflow-y-auto bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4">
+                                {messages.map(message => (
+                                    <div
+                                        key={message.id}
+                                        className={`mb-4 flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                                    >
+                                        <div
+                                            className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                                                message.type === 'user'
+                                                    ? 'bg-purple-600 text-white'
+                                                    : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow'
+                                            }`}
+                                        >
+                                            {message.type === 'ai' && (
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <span className="text-xs text-gray-500">AI Assistant</span>
+                                                    <button
+                                                        onClick={() => handleBookmark(message)}
+                                                        className="text-xs text-purple-600 hover:text-purple-800"
+                                                    >
+                                                        <i className="fas fa-bookmark"></i>
+                                                    </button>
+                                                </div>
+                                            )}
+                                            <pre className="whitespace-pre-wrap text-sm font-sans">{message.text}</pre>
+                                        </div>
+                                    </div>
+                                ))}
+                                {isTyping && (
+                                    <div className="flex justify-start mb-4">
+                                        <div className="bg-white dark:bg-gray-800 px-4 py-2 rounded-lg shadow">
+                                            <div className="flex items-center space-x-1">
+                                                <div className="w-2 h-2 bg-gray-400 rounded-full typing-animation"></div>
+                                                <div className="w-2 h-2 bg-gray-400 rounded-full typing-animation" style={{ animationDelay: '0.2s' }}></div>
+                                                <div className="w-2 h-2 bg-gray-400 rounded-full typing-animation" style={{ animationDelay: '0.4s' }}></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="flex space-x-2">
+                                <input
+                                    type="text"
+                                    value={inputText}
+                                    onChange={(e) => setInputText(e.target.value)}
+                                    onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                                    placeholder="Ask me anything about your studies..."
+                                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                />
+                                <button
+                                    onClick={() => handleSend()}
+                                    className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition duration-300"
+                                >
+                                    <i className="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Bookmarks Page Component
+        const BookmarksPage = () => {
+            const { bookmarks, setBookmarks, addNotification } = useContext(AppContext);
+
+            const handleRemoveBookmark = (id) => {
+                setBookmarks(prev => prev.filter(bookmark => bookmark.id !== id));
+                addNotification('Bookmark removed!', 'success');
+            };
+
+            return (
+                <div className="space-y-6">
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                            <i className="fas fa-bookmark text-purple-600 mr-2"></i>
+                            My Bookmarks
+                        </h2>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                            {bookmarks.length} bookmarked items
+                        </span>
+                    </div>
+
+                    {bookmarks.length === 0 ? (
+                        <div className="text-center py-12">
+                            <i className="fas fa-bookmark text-6xl text-gray-300 mb-4"></i>
+                            <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">No bookmarks yet</h3>
+                            <p className="text-gray-500 dark:text-gray-500">Start bookmarking AI responses and notes to access them later</p>
+                        </div>
+                    ) : (
+                        <div className="grid gap-4">
+                            {bookmarks.map(bookmark => (
+                                <div key={bookmark.id} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow card-shadow">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                            bookmark.type === 'ai-response' ? 'bg-purple-100 text-purple-700' :
+                                            bookmark.type === 'note' ? 'bg-blue-100 text-blue-700' :
+                                            'bg-green-100 text-green-700'
+                                        }`}>
+                                            {bookmark.type.replace('-', ' ').toUpperCase()}
+                                        </span>
+                                        <div className="flex items-center space-x-2">
+                                            <span className="text-sm text-gray-500">{bookmark.date}</span>
+                                            <button
+                                                onClick={() => handleRemoveBookmark(bookmark.id)}
+                                                className="text-red-500 hover:text-red-700 transition duration-300"
+                                            >
+                                                <i className="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div className="text-gray-900 dark:text-white">
+                                        <pre className="whitespace-pre-wrap text-sm font-sans">{bookmark.text}</pre>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // Upload Page Component (Teacher)
+        const UploadPage = () => {
+            const { addNotification } = useContext(AppContext);
+            const [uploadForm, setUploadForm] = useState({
+                title: '',
+                subject: '',
+                class: '',
+                type: 'pdf',
+                description: ''
+            });
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                addNotification('Content uploaded successfully! Waiting for admin approval.', 'success');
+                setUploadForm({ title: '', subject: '', class: '', type: 'pdf', description: '' });
+            };
+
+            return (
+                <div className="max-w-2xl mx-auto space-y-6">
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow card-shadow">
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                            <i className="fas fa-upload text-purple-600 mr-2"></i>
+                            Upload Study Material
+                        </h2>
+
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Title
+                                </label>
+                                <input
+                                    type="text"
+                                    value={uploadForm.title}
+                                    onChange={(e) => setUploadForm({...uploadForm, title: e.target.value})}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                    required
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Subject
+                                    </label>
+                                    <select
+                                        value={uploadForm.subject}
+                                        onChange={(e) => setUploadForm({...uploadForm, subject: e.target.value})}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                        required
+                                    >
+                                        <option value="">Select Subject</option>
+                                        <option value="Mathematics">Mathematics</option>
+                                        <option value="Physics">Physics</option>
+                                        <option value="Chemistry">Chemistry</option>
+                                        <option value="Biology">Biology</option>
+                                        <option value="History">History</option>
+                                        <option value="Geography">Geography</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Class
+                                    </label>
+                                    <select
+                                        value={uploadForm.class}
+                                        onChange={(e) => setUploadForm({...uploadForm, class: e.target.value})}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                        required
+                                    >
+                                        <option value="">Select Class</option>
+                                        <option value="9">Class 9</option>
+                                        <option value="10">Class 10</option>
+                                        <option value="11">Class 11</option>
+                                        <option value="12">Class 12</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    File Type
+                                </label>
+                                <select
+                                    value={uploadForm.type}
+                                    onChange={(e) => setUploadForm({...uploadForm, type: e.target.value})}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                >
+                                    <option value="pdf">PDF</option>
+                                    <option value="doc">DOC/DOCX</option>
+                                    <option value="ppt">PPT/PPTX</option>
+                                    <option value="txt">Text</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Description
+                                </label>
+                                <textarea
+                                    value={uploadForm.description}
+                                    onChange={(e) => setUploadForm({...uploadForm, description: e.target.value})}
+                                    rows="4"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                    placeholder="Brief description of the content..."
+                                />
+                            </div>
+
+                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                                <i className="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+                                <p className="text-gray-600 dark:text-gray-400">
+                                    Drag and drop your file here, or
+                                    <button type="button" className="text-purple-600 hover:text-purple-800 ml-1">
+                                        browse
+                                    </button>
+                                </p>
+                                <p className="text-sm text-gray-500 mt-2">
+                                    Supports: PDF, DOC, DOCX, PPT, PPTX, TXT (Max 10MB)
+                                </p>
+                            </div>
+
+                            <button
+                                type="submit"
+                                className="w-full bg-purple-600 text-white py-3 rounded-md hover:bg-purple-700 transition duration-300"
+                            >
+                                <i className="fas fa-upload mr-2"></i>
+                                Upload Content
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            );
+        };
+
+        // Create Quiz Page Component (Teacher)
+        const CreateQuizPage = () => {
+            const { addNotification } = useContext(AppContext);
+            const [quizForm, setQuizForm] = useState({
+                title: '',
+                subject: '',
+                class: '',
+                difficulty: 'medium',
+                timeLimit: 30,
+                questions: []
+            });
+            const [currentQuestion, setCurrentQuestion] = useState({
+                question: '',
+                options: ['', '', '', ''],
+                correct: 0,
+                explanation: ''
+            });
+
+            const handleAddQuestion = () => {
+                if (currentQuestion.question.trim() && currentQuestion.options.every(opt => opt.trim())) {
+                    setQuizForm({
+                        ...quizForm,
+                        questions: [...quizForm.questions, { ...currentQuestion, id: Date.now() }]
+                    });
+                    setCurrentQuestion({
+                        question: '',
+                        options: ['', '', '', ''],
+                        correct: 0,
+                        explanation: ''
+                    });
+                    addNotification('Question added successfully!', 'success');
+                }
+            };
+
+            const handleSubmitQuiz = (e) => {
+                e.preventDefault();
+                if (quizForm.questions.length > 0) {
+                    addNotification('Quiz created successfully!', 'success');
+                    setQuizForm({
+                        title: '',
+                        subject: '',
+                        class: '',
+                        difficulty: 'medium',
+                        timeLimit: 30,
+                        questions: []
+                    });
+                }
+            };
+
+            return (
+                <div className="max-w-4xl mx-auto space-y-6">
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow card-shadow">
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                            <i className="fas fa-plus-circle text-purple-600 mr-2"></i>
+                            Create New Quiz
+                        </h2>
+
+                        <form onSubmit={handleSubmitQuiz} className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Quiz Title
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={quizForm.title}
+                                        onChange={(e) => setQuizForm({...quizForm, title: e.target.value})}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                        required
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Subject
+                                    </label>
+                                    <select
+                                        value={quizForm.subject}
+                                        onChange={(e) => setQuizForm({...quizForm, subject: e.target.value})}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                        required
+                                    >
+                                        <option value="">Select Subject</option>
+                                        <option value="Mathematics">Mathematics</option>
+                                        <option value="Physics">Physics</option>
+                                        <option value="Chemistry">Chemistry</option>
+                                        <option value="Biology">Biology</option>
+                                        <option value="History">History</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Class
+                                    </label>
+                                    <select
+                                        value={quizForm.class}
+                                        onChange={(e) => setQuizForm({...quizForm, class: e.target.value})}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                        required
+                                    >
+                                        <option value="">Select Class</option>
+                                        <option value="9">Class 9</option>
+                                        <option value="10">Class 10</option>
+                                        <option value="11">Class 11</option>
+                                        <option value="12">Class 12</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Difficulty
+                                    </label>
+                                    <select
+                                        value={quizForm.difficulty}
+                                        onChange={(e) => setQuizForm({...quizForm, difficulty: e.target.value})}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                    >
+                                        <option value="easy">Easy</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="hard">Hard</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="border-t pt-6">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                                    Add Questions ({quizForm.questions.length} added)
+                                </h3>
+
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Question
+                                        </label>
+                                        <textarea
+                                            value={currentQuestion.question}
+                                            onChange={(e) => setCurrentQuestion({...currentQuestion, question: e.target.value})}
+                                            rows="2"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                            placeholder="Enter your question..."
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {currentQuestion.options.map((option, index) => (
+                                            <div key={index}>
+                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                                    Option {index + 1}
+                                                    {index === currentQuestion.correct && (
+                                                        <span className="text-green-600 ml-2">✓ Correct</span>
+                                                    )}
+                                                </label>
+                                                <div className="flex space-x-2">
+                                                    <input
+                                                        type="text"
+                                                        value={option}
+                                                        onChange={(e) => {
+                                                            const newOptions = [...currentQuestion.options];
+                                                            newOptions[index] = e.target.value;
+                                                            setCurrentQuestion({...currentQuestion, options: newOptions});
+                                                        }}
+                                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                                        placeholder={`Option ${index + 1}...`}
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setCurrentQuestion({...currentQuestion, correct: index})}
+                                                        className={`px-3 py-2 rounded-md ${
+                                                            index === currentQuestion.correct
+                                                                ? 'bg-green-600 text-white'
+                                                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                                        }`}
+                                                    >
+                                                        <i className="fas fa-check"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Explanation (Optional)
+                                        </label>
+                                        <textarea
+                                            value={currentQuestion.explanation}
+                                            onChange={(e) => setCurrentQuestion({...currentQuestion, explanation: e.target.value})}
+                                            rows="2"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                            placeholder="Explain why this is the correct answer..."
+                                        />
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={handleAddQuestion}
+                                        className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition duration-300"
+                                    >
+                                        <i className="fas fa-plus mr-2"></i>
+                                        Add Question
+                                    </button>
+                                </div>
+                            </div>
+
+                            {quizForm.questions.length > 0 && (
+                                <div className="border-t pt-6">
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                                        Quiz Preview
+                                    </h3>
+                                    <div className="space-y-4 max-h-64 overflow-y-auto">
+                                        {quizForm.questions.map((q, index) => (
+                                            <div key={q.id} className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                                                <h4 className="font-medium text-gray-900 dark:text-white mb-2">
+                                                    Q{index + 1}: {q.question}
+                                                </h4>
+                                                <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                                                    {q.options.map((option, optIndex) => (
+                                                        <li key={optIndex} className={optIndex === q.correct ? 'text-green-600 font-medium' : ''}>
+                                                            {String.fromCharCode(65 + optIndex)}. {option}
+                                                            {optIndex === q.correct && ' ✓'}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            <button
+                                type="submit"
+                                className="w-full bg-purple-600 text-white py-3 rounded-md hover:bg-purple-700 transition duration-300"
+                                disabled={quizForm.questions.length === 0}
+                            >
+                                <i className="fas fa-save mr-2"></i>
+                                Create Quiz
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            );
+        };
+
+        // Settings Page Component
+        const SettingsPage = () => {
+            const { user, theme, toggleTheme, language, toggleLanguage, t } = useContext(AppContext);
+            const [settings, setSettings] = useState({
+                notifications: true,
+                emailAlerts: false,
+                aiUsageLimit: 50,
+                autoSave: true,
+                dataCollection: true
+            });
+
+            return (
+                <div className="max-w-2xl mx-auto space-y-6">
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow card-shadow">
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                            <i className="fas fa-cog text-purple-600 mr-2"></i>
+                            {t('settings')}
+                        </h2>
+
+                        <div className="space-y-6">
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Preferences</h3>
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-gray-700 dark:text-gray-300">Theme</span>
+                                        <button
+                                            onClick={toggleTheme}
+                                            className="flex items-center space-x-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition duration-300"
+                                        >
+                                            <i className={`fas ${theme === 'light' ? 'fa-moon' : 'fa-sun'}`}></i>
+                                            <span>{theme === 'light' ? 'Dark' : 'Light'} Mode</span>
+                                        </button>
+                                    </div>
+
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-gray-700 dark:text-gray-300">Language</span>
+                                        <button
+                                            onClick={toggleLanguage}
+                                            className="flex items-center space-x-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition duration-300"
+                                        >
+                                            <i className="fas fa-language"></i>
+                                            <span>{language === 'en' ? 'हिंदी' : 'English'}</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Notifications</h3>
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-gray-700 dark:text-gray-300">Push Notifications</span>
+                                        <button
+                                            onClick={() => setSettings({...settings, notifications: !settings.notifications})}
+                                            className={`w-12 h-6 rounded-full ${settings.notifications ? 'bg-purple-600' : 'bg-gray-300'} relative transition duration-300`}
+                                        >
+                                            <div className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-transform duration-300 ${settings.notifications ? 'translate-x-6' : 'translate-x-0.5'}`}></div>
+                                        </button>
+                                    </div>
+
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-gray-700 dark:text-gray-300">Email Alerts</span>
+                                        <button
+                                            onClick={() => setSettings({...settings, emailAlerts: !settings.emailAlerts})}
+                                            className={`w-12 h-6 rounded-full ${settings.emailAlerts ? 'bg-purple-600' : 'bg-gray-300'} relative transition duration-300`}
+                                        >
+                                            <div className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-transform duration-300 ${settings.emailAlerts ? 'translate-x-6' : 'translate-x-0.5'}`}></div>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {user.role === 'student' && (
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">AI Settings</h3>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                                Daily AI Usage Limit
+                                            </label>
+                                            <input
+                                                type="range"
+                                                min="10"
+                                                max="100"
+                                                value={settings.aiUsageLimit}
+                                                onChange={(e) => setSettings({...settings, aiUsageLimit: parseInt(e.target.value)})}
+                                                className="w-full"
+                                            />
+                                            <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+                                                <span>10</span>
+                                                <span>Current: {settings.aiUsageLimit}</span>
+                                                <span>100</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Privacy</h3>
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-gray-700 dark:text-gray-300">Auto-save responses</span>
+                                        <button
+                                            onClick={() => setSettings({...settings, autoSave: !settings.autoSave})}
+                                            className={`w-12 h-6 rounded-full ${settings.autoSave ? 'bg-purple-600' : 'bg-gray-300'} relative transition duration-300`}
+                                        >
+                                            <div className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-transform duration-300 ${settings.autoSave ? 'translate-x-6' : 'translate-x-0.5'}`}></div>
+                                        </button>
+                                    </div>
+
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-gray-700 dark:text-gray-300">Allow data collection</span>
+                                        <button
+                                            onClick={() => setSettings({...settings, dataCollection: !settings.dataCollection})}
+                                            className={`w-12 h-6 rounded-full ${settings.dataCollection ? 'bg-purple-600' : 'bg-gray-300'} relative transition duration-300`}
+                                        >
+                                            <div className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-transform duration-300 ${settings.dataCollection ? 'translate-x-6' : 'translate-x-0.5'}`}></div>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="pt-6 border-t">
+                                <button className="w-full bg-red-600 text-white py-3 rounded-md hover:bg-red-700 transition duration-300">
+                                    <i className="fas fa-sign-out-alt mr-2"></i>
+                                    {t('logout')}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Profile Page Component
+        const ProfilePage = () => {
+            const { user, t } = useContext(AppContext);
+            const [isEditing, setIsEditing] = useState(false);
+            const [profileData, setProfileData] = useState({
+                name: user.name,
+                email: user.email,
+                bio: 'Passionate about learning and teaching.',
+                location: 'India',
+                institution: 'Example School/College'
+            });
+
+            const handleSave = () => {
+                setIsEditing(false);
+                // In a real app, this would update the backend
+            };
+
+            return (
+                <div className="max-w-2xl mx-auto space-y-6">
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow card-shadow">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                                <i className="fas fa-user text-purple-600 mr-2"></i>
+                                {t('profile')}
+                            </h2>
+                            <button
+                                onClick={() => setIsEditing(!isEditing)}
+                                className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition duration-300"
+                            >
+                                <i className={`fas ${isEditing ? 'fa-save' : 'fa-edit'} mr-2`}></i>
+                                {isEditing ? 'Save' : 'Edit'}
+                            </button>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div className="flex items-center space-x-4">
+                                <img src={user.avatar} alt={user.name} className="w-20 h-20 rounded-full" />
+                                <div>
+                                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{user.name}</h3>
+                                    <p className="text-gray-600 dark:text-gray-400 capitalize">{user.role}</p>
+                                    <span className="inline-block px-2 py-1 bg-green-100 text-green-800 rounded-full text-sm mt-2">
+                                        Active
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Full Name
+                                    </label>
+                                    {isEditing ? (
+                                        <input
+                                            type="text"
+                                            value={profileData.name}
+                                            onChange={(e) => setProfileData({...profileData, name: e.target.value})}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                        />
+                                    ) : (
+                                        <p className="text-gray-900 dark:text-white">{profileData.name}</p>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Email
+                                    </label>
+                                    <p className="text-gray-900 dark:text-white">{profileData.email}</p>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Bio
+                                    </label>
+                                    {isEditing ? (
+                                        <textarea
+                                            value={profileData.bio}
+                                            onChange={(e) => setProfileData({...profileData, bio: e.target.value})}
+                                            rows="3"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                        />
+                                    ) : (
+                                        <p className="text-gray-900 dark:text-white">{profileData.bio}</p>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Location
+                                    </label>
+                                    {isEditing ? (
+                                        <input
+                                            type="text"
+                                            value={profileData.location}
+                                            onChange={(e) => setProfileData({...profileData, location: e.target.value})}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                        />
+                                    ) : (
+                                        <p className="text-gray-900 dark:text-white">{profileData.location}</p>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Institution
+                                    </label>
+                                    {isEditing ? (
+                                        <input
+                                            type="text"
+                                            value={profileData.institution}
+                                            onChange={(e) => setProfileData({...profileData, institution: e.target.value})}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                        />
+                                    ) : (
+                                        <p className="text-gray-900 dark:text-white">{profileData.institution}</p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {isEditing && (
+                                <div className="flex space-x-4">
+                                    <button
+                                        onClick={handleSave}
+                                        className="flex-1 bg-purple-600 text-white py-2 rounded-md hover:bg-purple-700 transition duration-300"
+                                    >
+                                        Save Changes
+                                    </button>
+                                    <button
+                                        onClick={() => setIsEditing(false)}
+                                        className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-md hover:bg-gray-400 transition duration-300"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {user.role === 'student' && (
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow card-shadow">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Statistics</h3>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="text-center">
+                                    <div className="text-2xl font-bold text-purple-600">85%</div>
+                                    <div className="text-sm text-gray-600 dark:text-gray-400">Average Score</div>
+                                </div>
+                                <div className="text-center">
+                                    <div className="text-2xl font-bold text-green-600">24</div>
+                                    <div className="text-sm text-gray-600 dark:text-gray-400">Quizzes Taken</div>
+                                </div>
+                                <div className="text-center">
+                                    <div className="text-2xl font-bold text-blue-600">156</div>
+                                    <div className="text-sm text-gray-600 dark:text-gray-400">AI Queries</div>
+                                </div>
+                                <div className="text-center">
+                                    <div className="text-2xl font-bold text-yellow-600">12</div>
+                                    <div className="text-sm text-gray-600 dark:text-gray-400">Bookmarks</div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // Main App Component
+        const App = () => {
+            const { user, currentPage } = useContext(AppContext);
+
+            const renderPage = () => {
+                if (!user) {
+                    return currentPage === 'login' ? <LoginPage /> : <WelcomePage />;
+                }
+
+                switch (currentPage) {
+                    case 'dashboard':
+                        return user.role === 'student' ? <StudentDashboard /> :
+                               user.role === 'teacher' ? <TeacherDashboard /> :
+                               <AdminDashboard />;
+                    case 'notes':
+                        return user.role === 'student' ? <NotesPage /> : <StudentDashboard />;
+                    case 'quizzes':
+                        return user.role === 'student' ? <QuizPage /> : <StudentDashboard />;
+                    case 'ask-ai':
+                        return user.role === 'student' ? <AskAIPage /> : <StudentDashboard />;
+                    case 'bookmarks':
+                        return user.role === 'student' ? <BookmarksPage /> : <StudentDashboard />;
+                    case 'upload':
+                        return user.role === 'teacher' ? <UploadPage /> : <TeacherDashboard />;
+                    case 'create-quiz':
+                        return user.role === 'teacher' ? <CreateQuizPage /> : <TeacherDashboard />;
+                    case 'profile':
+                        return <ProfilePage />;
+                    case 'settings':
+                        return <SettingsPage />;
+                    default:
+                        return user.role === 'student' ? <StudentDashboard /> :
+                               user.role === 'teacher' ? <TeacherDashboard /> :
+                               <AdminDashboard />;
+                }
+            };
+
+            return (
+                <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+                    <Header />
+                    <div className="flex">
+                        <Sidebar />
+                        <main className={`flex-1 ${user ? 'md:ml-64 mt-16' : ''}`}>
+                            <div className="p-6">
+                                {renderPage()}
+                            </div>
+                        </main>
+                    </div>
+                    <NotificationToast />
+                </div>
+            );
+        };
+
+        // Root Component
+        const Root = () => (
+            <AppProvider>
+                <App />
+            </AppProvider>
+        );
+
+        ReactDOM.render(<Root />, document.getElementById('root'));
+    </script>
+</body>
+</html>
