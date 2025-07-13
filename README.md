@@ -1,0 +1,2 @@
+# StudyRatnaAI
+Study Ratna AI
